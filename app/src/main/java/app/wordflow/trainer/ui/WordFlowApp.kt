@@ -17,6 +17,7 @@ import app.wordflow.trainer.ui.theme.*
 private object Routes {
     const val Home = "home"
     const val Store = "store"
+    const val Stats = "stats"
     const val Language = "language/{id}"
     const val Learn = "learn"
     const val Settings = "settings"
@@ -52,6 +53,7 @@ fun WordFlowApp(vm: WordFlowViewModel = viewModel()) {
     val barSelected = when {
         route == Routes.Settings -> "settings"
         route == Routes.Store -> "store"
+        route == Routes.Stats -> "stats"
         else -> "home"
     }
 
@@ -64,6 +66,7 @@ fun WordFlowApp(vm: WordFlowViewModel = viewModel()) {
                     onHome = { nav.navigate(Routes.Home) { popUpTo(nav.graph.findStartDestination().id) { saveState = true }; launchSingleTop = true; restoreState = true } },
                     onStore = { nav.navigate(Routes.Store) { popUpTo(nav.graph.findStartDestination().id) { saveState = true }; launchSingleTop = true; restoreState = true } },
                     onPlus = { plusOpen = true },
+                    onStats = { nav.navigate(Routes.Stats) { popUpTo(nav.graph.findStartDestination().id) { saveState = true }; launchSingleTop = true; restoreState = true } },
                     onSettings = { nav.navigate(Routes.Settings) { popUpTo(nav.graph.findStartDestination().id) { saveState = true }; launchSingleTop = true; restoreState = true } }
                 )
             }
@@ -88,6 +91,7 @@ fun WordFlowApp(vm: WordFlowViewModel = viewModel()) {
                 )
             }
             composable(Routes.Store) { StoreScreen(state) }
+            composable(Routes.Stats) { StatsScreen(state) }
             composable(
                 Routes.Language,
                 arguments = listOf(navArgument("id") { type = NavType.StringType })

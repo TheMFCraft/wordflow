@@ -61,6 +61,7 @@ fun WordFlowBottomBar(
     onHome: () -> Unit,
     onStore: () -> Unit,
     onPlus: () -> Unit,
+    onStats: () -> Unit,
     onSettings: () -> Unit,
 ) {
     Box(
@@ -99,12 +100,12 @@ fun WordFlowBottomBar(
                 }
                 Spacer(Modifier.width(84.dp))
                 BarItem(
-                    selected = false,
-                    label = "Info",
-                    onClick = { },
+                    selected = selected == "stats",
+                    label = "Stats",
+                    onClick = onStats,
                     modifier = Modifier.weight(1f),
                 ) {
-                    // Empty or another icon
+                    Icon(androidx.compose.material.icons.Icons.Outlined.BarChart, null, tint = if (selected == "stats") Accent else Muted)
                 }
                 BarItem(
                     selected = selected == "settings",

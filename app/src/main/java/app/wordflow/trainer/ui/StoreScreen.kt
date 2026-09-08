@@ -26,7 +26,7 @@ import app.wordflow.trainer.ui.theme.*
 @Composable
 fun StoreScreen(state: UiState) {
     val packs = listOf(
-        LanguagePack("pn-la", "la", "Prima Nova Latein", "Vollständiger Wortschatz zum Lehrbuch Prima Nova. Alle Lektionen 1-45.", "4,99€"),
+        LanguagePack("pn-la", "la", "Prima Nova Latein", "Vollständiger Wortschatz zum Lehrbuch Prima Nova. Alle Lektionen 1-45.", "Kostenlos"),
         LanguagePack("la-basis", "la", "Latein Grundwortschatz", "Die 500 häufigsten Wörter für das Latinum.", "Kostenlos"),
         LanguagePack("es-reisen", "es", "Spanisch für den Urlaub", "Wichtige Sätze und Wörter für deine Reise nach Spanien.", "Kostenlos")
     )

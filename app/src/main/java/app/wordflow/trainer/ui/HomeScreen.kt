@@ -7,9 +7,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.ChevronRight
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,6 +25,7 @@ import app.wordflow.trainer.languageById
 import app.wordflow.trainer.ui.theme.*
 import kotlin.math.min
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(
     state: UiState,
@@ -77,19 +79,34 @@ fun HomeScreen(
         } else {
             langs.forEach { lang ->
                 val chCount = state.chapters.count { it.lang == lang.id }
-                Row(
-                    Modifier.fillMaxWidth().padding(bottom = 12.dp).clip(RoundedCornerShape(18.dp))
-                        .background(Surface).border(1.dp, Border, RoundedCornerShape(18.dp))
-                        .clickable { onLanguage(lang.id) }.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(lang.flag, fontSize = 24.sp)
-                    Spacer(Modifier.width(16.dp))
-                    Column(Modifier.weight(1f)) {
-                        Text(lang.name, fontWeight = FontWeight.Bold)
-                        Text("$chCount Kapitel", color = Muted, fontSize = 13.sp)
+                var menuOpen by remember { mutableStateOf(false) }
+
+                Box {
+                    Row(
+                        Modifier.fillMaxWidth().padding(bottom = 12.dp).clip(RoundedCornerShape(18.dp))
+                            .background(Surface).border(1.dp, Border, RoundedCornerShape(18.dp))
+                            .combinedClickable(
+                                onClick = { onLanguage(lang.id) },
+                                onLongClick = { menuOpen = true }
+                            ).padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(lang.flag, fontSize = 24.sp)
+                        Spacer(Modifier.width(16.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text(lang.name, fontWeight = FontWeight.Bold)
+                            Text("$chCount Kapitel", color = Muted, fontSize = 13.sp)
+                        }
+                        Icon(Icons.Outlined.ChevronRight, null, tint = Border)
                     }
-                    Icon(Icons.Outlined.ChevronRight, null, tint = Border)
+
+                    DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                        DropdownMenuItem(
+                            text = { Text("Sprache entfernen", color = Error) },
+                            onClick = { menuOpen = false },
+                            leadingIcon = { Icon(Icons.Outlined.Delete, null, tint = Error) }
+                        )
+                    }
                 }
             }
         }
@@ -97,6 +114,7 @@ fun HomeScreen(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun LanguageScreen(
     state: UiState,
@@ -116,13 +134,28 @@ fun LanguageScreen(
             Text("Noch keine Kapitel für ${lang.name}. Tippe auf Plus um eines zu erstellen.", color = Muted)
         } else {
             chapters.forEach { chapter ->
-                Row(
-                    Modifier.fillMaxWidth().padding(bottom = 12.dp).clip(RoundedCornerShape(16.dp))
-                        .background(Surface).border(1.dp, Border, RoundedCornerShape(16.dp))
-                        .clickable { onChapter(chapter.id) }.padding(16.dp)
-                ) {
-                    Text(chapter.name, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-                    Icon(Icons.Outlined.PlayArrow, null, tint = Accent)
+                var menuOpen by remember { mutableStateOf(false) }
+
+                Box {
+                    Row(
+                        Modifier.fillMaxWidth().padding(bottom = 12.dp).clip(RoundedCornerShape(16.dp))
+                            .background(Surface).border(1.dp, Border, RoundedCornerShape(16.dp))
+                            .combinedClickable(
+                                onClick = { onChapter(chapter.id) },
+                                onLongClick = { menuOpen = true }
+                            ).padding(16.dp)
+                    ) {
+                        Text(chapter.name, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                        Icon(Icons.Outlined.PlayArrow, null, tint = Accent)
+                    }
+
+                    DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                        DropdownMenuItem(
+                            text = { Text("Kapitel löschen", color = Error) },
+                            onClick = { menuOpen = false },
+                            leadingIcon = { Icon(Icons.Outlined.Delete, null, tint = Error) }
+                        )
+                    }
                 }
             }
         }

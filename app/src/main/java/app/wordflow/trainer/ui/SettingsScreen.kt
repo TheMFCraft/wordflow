@@ -19,6 +19,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
+import app.wordflow.trainer.CyloneIdAuth
 import app.wordflow.trainer.UiState
 import app.wordflow.trainer.ui.theme.*
 
@@ -95,20 +97,40 @@ private fun ProfileSettings(state: UiState, onName: (String) -> Unit, onGoal: (I
 
 @Composable
 private fun AccountSettings(state: UiState, onLogin: () -> Unit, onLogout: () -> Unit, onBack: () -> Unit) {
+    val context = LocalContext.current
     Column(Modifier.fillMaxSize().padding(20.dp)) {
         SettingsHeader("Cylone ID", onBack)
         if (state.user.isCyloneLinked) {
-            Text("Verbunden mit:", color = Muted)
-            Text(state.user.cyloneEmail, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-            Spacer(Modifier.height(24.dp))
-            Button(onClick = onLogout, colors = ButtonDefaults.buttonColors(containerColor = CyloneGrey), shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
-                Text("Abmelden")
+            Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(Surface).border(1.dp, Border, RoundedCornerShape(20.dp)).padding(24.dp)) {
+                Column {
+                    Text("Verbunden mit:", color = Muted, style = MaterialTheme.typography.labelSmall)
+                    Text(state.user.cyloneEmail, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                    Text(state.user.cyloneName, color = Muted, fontSize = 14.sp)
+                    Spacer(Modifier.height(24.dp))
+                    Button(
+                        onClick = onLogout,
+                        colors = ButtonDefaults.buttonColors(containerColor = CyloneGrey),
+                        shape = RoundedCornerShape(14.dp),
+                        modifier = Modifier.fillMaxWidth().height(52.dp)
+                    ) {
+                        Text("Abmelden")
+                    }
+                }
             }
         } else {
-            Text("Melde dich an, um deinen Fortschritt in der Cloud zu speichern.")
+            Text("Melde dich an, um deinen Fortschritt in der Cloud zu speichern und WordFlow PLUS auf allen Geräten zu nutzen.", color = Muted)
             Spacer(Modifier.height(24.dp))
-            Button(onClick = onLogin, colors = ButtonDefaults.buttonColors(containerColor = CyloneGrey), shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
-                // Here text is omitted as per request or just dark grey
+            // Dark grey icon-only button as requested
+            Button(
+                onClick = { 
+                    onLogin()
+                    (context as? android.app.Activity)?.let { app.wordflow.trainer.CyloneIdAuth.startLogin(it) }
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = CyloneGrey),
+                shape = RoundedCornerShape(14.dp),
+                modifier = Modifier.fillMaxWidth().height(56.dp)
+            ) {
+                if (state.authBusy) CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
             }
         }
     }
