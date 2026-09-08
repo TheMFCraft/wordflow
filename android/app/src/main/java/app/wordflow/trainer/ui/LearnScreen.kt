@@ -62,7 +62,7 @@ fun LearnScreen(
     Column(Modifier.fillMaxSize().background(Bg).padding(20.dp)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Column {
-                Text((session?.lang?.let { "${it.name} · ${it.pack}" } ?: "Karteikarten").uppercase(), color = Muted, fontSize = 11.sp, letterSpacing = 1.sp)
+                Text((session?.let { "${it.lang.name} · ${it.chapterName}" } ?: "Karteikarten").uppercase(), color = Muted, fontSize = 11.sp, letterSpacing = 1.sp)
                 Text(if (session?.done == true) "Lektion fertig" else "Karteikarten", fontSize = 26.sp, fontWeight = FontWeight.ExtraBold)
             }
             IconButton(onClick = onClose) { Icon(Icons.Outlined.Close, contentDescription = "Beenden") }

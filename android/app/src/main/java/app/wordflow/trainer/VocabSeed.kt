@@ -3,6 +3,8 @@ package app.wordflow.trainer
 object VocabSeed {
     fun all(): List<WordEntity> = es() + fr() + ja() + it() + en()
 
+    fun forLang(lang: String): List<WordEntity> = all().filter { it.lang == lang }
+
     private fun w(
         lang: String,
         slug: String,

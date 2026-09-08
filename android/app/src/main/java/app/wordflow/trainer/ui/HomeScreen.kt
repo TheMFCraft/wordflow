@@ -18,8 +18,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -30,9 +34,9 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import app.wordflow.trainer.LANGUAGES
 import app.wordflow.trainer.UiState
 import app.wordflow.trainer.VocabRepository
+import app.wordflow.trainer.languageById
 import app.wordflow.trainer.ui.theme.Accent
 import app.wordflow.trainer.ui.theme.Accent2
 import app.wordflow.trainer.ui.theme.AccentSoft
@@ -47,16 +51,13 @@ import kotlin.math.min
 fun HomeScreen(
     state: UiState,
     onLearn: () -> Unit,
-    onLang: (String) -> Unit,
-    onScan: () -> Unit,
-    onPro: () -> Unit,
+    onLanguage: (String) -> Unit,
 ) {
     val user = state.user
-    val lang = LANGUAGES.first { it.id == user.selectedLang }
     val today = min(user.todayCount, user.dailyGoal)
     val remaining = (user.dailyGoal - user.todayCount).coerceAtLeast(0)
     val acc = if (user.totalAttempts == 0) 0 else (user.totalCorrect * 100 / user.totalAttempts)
-    val unlocked = LANGUAGES.count { it.free || user.isPro }
+    val langs = user.selectedLanguages
 
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp)) {
         Text(VocabRepository.longDate().uppercase(), color = Muted, fontSize = 11.sp, letterSpacing = 1.sp)
@@ -66,8 +67,10 @@ fun HomeScreen(
             Box(Modifier.clip(CircleShape).background(Accent2.copy(alpha = 0.25f)).padding(horizontal = 12.dp, vertical = 6.dp)) {
                 Text("🔥 ${user.streak} ${if (user.streak == 1) "Tag" else "Tage"} streak!", fontWeight = FontWeight.Bold, color = Fg, fontSize = 13.sp)
             }
-            Box(Modifier.clip(CircleShape).background(AccentSoft).padding(horizontal = 10.dp, vertical = 4.dp)) {
-                Text("NIVEAU ${lang.level}", color = Accent, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+            if (user.isPlus) {
+                Box(Modifier.clip(CircleShape).background(AccentSoft).padding(horizontal = 10.dp, vertical = 4.dp)) {
+                    Text("PLUS", color = Accent, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                }
             }
         }
         Spacer(Modifier.height(16.dp))
@@ -96,38 +99,83 @@ fun HomeScreen(
         }
         Spacer(Modifier.height(16.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            MiniStat("$today".let { state.learnedTotal.toString() }, "Gelernt", Accent, Modifier.weight(1f))
+            MiniStat(state.learnedTotal.toString(), "Gelernt", Accent, Modifier.weight(1f))
             MiniStat("$acc%", "Genauigkeit", Accent2, Modifier.weight(1f))
-            MiniStat("$unlocked", "Sprachen", Success, Modifier.weight(1f))
-        }
-        Spacer(Modifier.height(12.dp))
-        Button(onClick = onScan, modifier = Modifier.fillMaxWidth().height(52.dp), shape = RoundedCornerShape(16.dp), colors = ButtonDefaults.buttonColors(containerColor = Fg)) {
-            Text("Foto von Vokabelliste scannen", fontWeight = FontWeight.Bold)
+            MiniStat("${langs.size}", "Sprachen", Success, Modifier.weight(1f))
         }
         Spacer(Modifier.height(20.dp))
         Text("Deine Sprachen", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
         Spacer(Modifier.height(10.dp))
-        LANGUAGES.forEach { item ->
-            val counts = state.learnedByLang[item.id] ?: (0 to 0)
-            val locked = !item.free && !user.isPro
-            Row(
-                Modifier.fillMaxWidth().padding(bottom = 10.dp).clip(RoundedCornerShape(18.dp))
-                    .border(1.dp, if (user.selectedLang == item.id) Accent else Border, RoundedCornerShape(18.dp))
-                    .background(Surface)
-                    .clickable { onLang(item.id) }
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(item.flag, fontSize = 26.sp, modifier = Modifier.padding(end = 12.dp))
-                Column(Modifier.weight(1f)) {
-                    Text("${item.name}${if (locked) " · Pro" else ""}", fontWeight = FontWeight.SemiBold)
-                    Text("${counts.second} Wörter · ${item.level}", color = Muted, fontSize = 13.sp)
+        if (langs.isEmpty()) {
+            Text("Noch keine Sprache gewählt. Tippe auf Plus, um eine hinzuzufügen.", color = Muted)
+        } else {
+            langs.forEach { item ->
+                val counts = state.learnedByLang[item.id] ?: (0 to 0)
+                val chapterCount = state.chapters.count { it.lang == item.id }
+                Row(
+                    Modifier.fillMaxWidth().padding(bottom = 10.dp).clip(RoundedCornerShape(18.dp))
+                        .border(1.dp, if (user.selectedLang == item.id) Accent else Border, RoundedCornerShape(18.dp))
+                        .background(Surface)
+                        .clickable { onLanguage(item.id) }
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(item.flag, fontSize = 26.sp, modifier = Modifier.padding(end = 12.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(item.name, fontWeight = FontWeight.SemiBold)
+                        Text("$chapterCount Kapitel · ${counts.second} Wörter", color = Muted, fontSize = 13.sp)
+                    }
+                    Text("›", color = Muted, fontSize = 20.sp)
                 }
-                Text(if (locked) "🔒" else "›", color = Muted)
             }
         }
-        TextButtonPro(onPro)
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(40.dp))
+    }
+}
+
+@Composable
+fun LanguageScreen(
+    state: UiState,
+    langId: String,
+    onBack: () -> Unit,
+    onChapter: (String) -> Unit,
+) {
+    val lang = languageById(langId)
+    val chapters = state.chapters.filter { it.lang == langId }
+    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onBack) { Icon(Icons.Outlined.ArrowBack, contentDescription = "Zurück") }
+            Column {
+                Text(lang.name.uppercase(), color = Muted, fontSize = 11.sp, letterSpacing = 1.sp)
+                Text("Kapitel", fontSize = 26.sp, fontWeight = FontWeight.ExtraBold)
+            }
+        }
+        Spacer(Modifier.height(8.dp))
+        Text("Tippe ein Kapitel, um die Vokabeln zu lernen. Neue Kapitel legst du über das Plus an.", color = Muted)
+        Spacer(Modifier.height(16.dp))
+        if (chapters.isEmpty()) {
+            Text("Noch keine Kapitel. Öffne das Plus und lege dein erstes Kapitel an.", color = Muted)
+        } else {
+            chapters.forEach { chapter ->
+                val words = state.words.count { it.chapterId == chapter.id }
+                val learned = state.words.count { it.chapterId == chapter.id && it.box >= 2 }
+                Row(
+                    Modifier.fillMaxWidth().padding(bottom = 10.dp).clip(RoundedCornerShape(18.dp))
+                        .border(1.dp, Border, RoundedCornerShape(18.dp))
+                        .background(Surface)
+                        .clickable { onChapter(chapter.id) }
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Text(chapter.name, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+                        Text("$learned/$words gelernt", color = Muted, fontSize = 13.sp)
+                    }
+                    Text("Lernen ›", color = Accent, fontWeight = FontWeight.SemiBold)
+                }
+            }
+        }
+        Spacer(Modifier.height(40.dp))
     }
 }
 
@@ -137,9 +185,4 @@ private fun MiniStat(value: String, label: String, color: androidx.compose.ui.gr
         Text(value, color = color, fontWeight = FontWeight.ExtraBold, fontSize = 22.sp)
         Text(label, color = Muted, fontSize = 12.sp)
     }
-}
-
-@Composable
-private fun TextButtonPro(onPro: () -> Unit) {
-    Text("WordFlow Pro", color = Accent, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 8.dp).clickable(onClick = onPro))
 }

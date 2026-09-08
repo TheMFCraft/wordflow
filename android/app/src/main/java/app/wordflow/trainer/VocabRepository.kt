@@ -16,18 +16,16 @@ class VocabRepository(context: Context, private val db: AppDatabase) {
     val user: Flow<UserState> = prefs.state
     val activity: Flow<List<ActivityEntity>> = db.activity().observe()
     val daily: Flow<List<DailyEntity>> = db.daily().observe()
+    val chapters: Flow<List<ChapterEntity>> = db.chapters().observeAll()
 
     fun words(lang: String): Flow<List<WordEntity>> = db.words().observeByLang(lang)
     fun allWords(): Flow<List<WordEntity>> = db.words().observeAll()
 
     init {
-        CoroutineScope(Dispatchers.IO).launch { seedIfNeeded() }
+        CoroutineScope(Dispatchers.IO).launch { resetTodayIfNeeded() }
     }
 
-    private suspend fun seedIfNeeded() {
-        if (db.words().count() == 0) {
-            db.words().insertAll(VocabSeed.all())
-        }
+    private suspend fun resetTodayIfNeeded() {
         prefs.save { state ->
             val today = todayKey()
             if (state.todayDate == today) state
@@ -35,29 +33,132 @@ class VocabRepository(context: Context, private val db: AppDatabase) {
         }
     }
 
-    suspend fun completeOnboarding(name: String, lang: String, goal: Int) {
+    suspend fun completeOnboarding(name: String, langIds: List<String>, goal: Int) {
+        val langs = langIds.filter { id -> LANGUAGES.any { it.id == id } }.distinct()
+            .ifEmpty { listOf("es") }
         prefs.save {
             it.copy(
                 onboardingDone = true,
-                name = name.trim().ifBlank { "Anna" }.take(24),
-                selectedLang = lang,
+                name = name.trim().ifBlank { it.cyloneName.ifBlank { "Anna" } }.take(24),
+                selectedLang = langs.first(),
+                selectedLangIds = langs,
                 dailyGoal = goal,
             )
         }
+        langs.forEach { ensureLanguageContent(it) }
+    }
+
+    suspend fun addLanguage(langId: String) {
+        if (LANGUAGES.none { it.id == langId }) return
+        prefs.save { state ->
+            val ids = (state.selectedLangIds + langId).distinct()
+            state.copy(selectedLangIds = ids, selectedLang = langId)
+        }
+        ensureLanguageContent(langId)
+    }
+
+    suspend fun createChapter(langId: String, name: String): ChapterEntity? {
+        val trimmed = name.trim().ifBlank { return null }
+        if (LANGUAGES.none { it.id == langId }) return null
+        prefs.save { state ->
+            val ids = if (langId in state.selectedLangIds) state.selectedLangIds else state.selectedLangIds + langId
+            state.copy(selectedLangIds = ids, selectedLang = langId)
+        }
+        ensureLanguageContent(langId)
+        val chapter = ChapterEntity(
+            id = "ch-$langId-${System.currentTimeMillis()}",
+            lang = langId,
+            name = trimmed.take(40),
+        )
+        db.chapters().insert(chapter)
+        return chapter
+    }
+
+    suspend fun addWord(langId: String, chapterId: String, word: String, translation: String) {
+        val w = word.trim()
+        val t = translation.trim()
+        if (w.isBlank() || t.isBlank()) return
+        var targetChapter = chapterId
+        if (targetChapter.isBlank() || db.chapters().byId(targetChapter) == null) {
+            ensureLanguageContent(langId)
+            targetChapter = db.chapters().byLang(langId).firstOrNull()?.id ?: return
+        }
+        db.words().insertAll(
+            listOf(
+                WordEntity(
+                    id = "manual-$langId-${w.lowercase().replace(Regex("[^a-z0-9äöüß]+"), "-")}-${System.currentTimeMillis()}",
+                    lang = langId,
+                    word = w,
+                    translation = t,
+                    pos = "Vokabel",
+                    source = "manual",
+                    chapterId = targetChapter,
+                ),
+            ),
+        )
+        prefs.save { it.copy(selectedLang = langId, selectedLangIds = (it.selectedLangIds + langId).distinct()) }
+    }
+
+    private suspend fun ensureLanguageContent(langId: String) {
+        val existing = db.chapters().byLang(langId)
+        if (existing.isNotEmpty()) return
+        val chapter = ChapterEntity(
+            id = "ch-$langId-grund",
+            lang = langId,
+            name = "Grundwortschatz",
+        )
+        db.chapters().insert(chapter)
+        val seeds = VocabSeed.forLang(langId).map { it.copy(chapterId = chapter.id) }
+        if (seeds.isNotEmpty()) db.words().insertAll(seeds)
     }
 
     suspend fun selectLang(lang: String) {
         prefs.save { it.copy(selectedLang = lang) }
     }
 
-    suspend fun setPro(enabled: Boolean) {
+    suspend fun setPlus(enabled: Boolean) {
+        prefs.save { it.copy(isPlus = enabled) }
+    }
+
+    suspend fun setDailyGoal(goal: Int) {
+        prefs.save { it.copy(dailyGoal = goal) }
+    }
+
+    suspend fun setName(name: String) {
+        prefs.save { it.copy(name = name.trim().take(24)) }
+    }
+
+    suspend fun linkCylone(profile: CyloneProfile) {
         prefs.save { state ->
-            val lang = if (!enabled && LANGUAGES.first { it.id == state.selectedLang }.free.not()) "es" else state.selectedLang
-            state.copy(isPro = enabled, selectedLang = lang)
+            state.copy(
+                cyloneSub = profile.sub,
+                cyloneEmail = profile.email,
+                cyloneName = profile.name,
+                cyloneAccessToken = profile.accessToken,
+                cyloneRefreshToken = profile.refreshToken,
+                name = state.name.ifBlank { profile.name.take(24) },
+            )
         }
     }
 
-    suspend fun importPairs(lang: String, pairs: List<VocabPair>) {
+    suspend fun unlinkCylone() {
+        prefs.save {
+            it.copy(
+                cyloneSub = "",
+                cyloneEmail = "",
+                cyloneName = "",
+                cyloneAccessToken = "",
+                cyloneRefreshToken = "",
+            )
+        }
+    }
+
+    suspend fun importPairs(lang: String, chapterId: String, pairs: List<VocabPair>) {
+        var target = chapterId
+        if (target.isBlank() || db.chapters().byId(target) == null) {
+            ensureLanguageContent(lang)
+            target = db.chapters().byLang(lang).firstOrNull()?.id.orEmpty()
+        }
         val words = pairs.mapIndexed { index, pair ->
             WordEntity(
                 id = "scan-$lang-${pair.word.lowercase().replace(Regex("[^a-z0-9äöü]+"), "-")}-$index-${System.currentTimeMillis()}",
@@ -66,9 +167,11 @@ class VocabRepository(context: Context, private val db: AppDatabase) {
                 translation = pair.translation,
                 pos = "Scan",
                 source = "scan",
+                chapterId = target,
             )
         }
         db.words().insertAll(words)
+        prefs.save { it.copy(selectedLang = lang, selectedLangIds = (it.selectedLangIds + lang).distinct()) }
     }
 
     suspend fun grade(word: WordEntity, knew: Boolean, elapsedMs: Long = 0) {
@@ -100,12 +203,12 @@ class VocabRepository(context: Context, private val db: AppDatabase) {
         db.daily().upsert(DailyEntity(today, (existing?.count ?: 0) + 1))
     }
 
-    suspend fun logSession(lang: LanguageInfo, known: Int, total: Int, seconds: Long) {
+    suspend fun logSession(lang: LanguageInfo, chapterName: String, known: Int, total: Int, seconds: Long) {
         prefs.save { it.copy(totalSeconds = it.totalSeconds + seconds) }
         db.activity().insert(
             ActivityEntity(
                 langId = lang.id,
-                title = "${lang.name} · ${lang.pack}",
+                title = "${lang.name} · $chapterName",
                 words = total,
                 accuracy = if (total == 0) 0 else (known * 100 / total),
                 date = todayKey(),
@@ -117,6 +220,8 @@ class VocabRepository(context: Context, private val db: AppDatabase) {
     suspend fun totalCount(lang: String) = db.words().totalCount(lang)
     suspend fun learnedTotal() = db.words().learnedTotal()
     suspend fun byLang(lang: String) = db.words().byLang(lang)
+    suspend fun byChapter(chapterId: String) = db.words().byChapter(chapterId)
+    suspend fun chapterById(id: String) = db.chapters().byId(id)
     suspend fun userOnce() = prefs.state.first()
 
     companion object {

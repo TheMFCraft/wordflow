@@ -3,6 +3,14 @@
 
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+    </queries>
 
     <application
         android:name=".WordFlowApplication"
@@ -17,11 +25,21 @@
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/title_activity_main"
+            android:launchMode="singleTask"
             android:theme="@style/AppTheme.NoActionBarLaunch"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:host="oauth"
+                    android:pathPrefix="/callback"
+                    android:scheme="app.wordflow.trainer" />
             </intent-filter>
         </activity>
     </application>

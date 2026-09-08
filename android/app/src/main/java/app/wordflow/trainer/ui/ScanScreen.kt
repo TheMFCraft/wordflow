@@ -61,7 +61,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun ScanScreen(
     state: UiState,
-    onImport: (String, List<VocabPair>) -> Unit,
+    onImport: (String, String, List<VocabPair>) -> Unit,
     recognize: suspend (Bitmap, Boolean) -> String,
 ) {
     val context = LocalContext.current
@@ -72,7 +72,8 @@ fun ScanScreen(
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     var saved by remember { mutableStateOf(false) }
-    var lang by remember { mutableStateOf(state.user.selectedLang) }
+    var lang by remember { mutableStateOf(state.user.selectedLang.ifBlank { state.user.selectedLangIds.firstOrNull().orEmpty() }) }
+    var chapterId by remember { mutableStateOf(state.chapters.firstOrNull { it.lang == lang }?.id.orEmpty()) }
 
     fun analyze(bmp: Bitmap) {
         loading = true
@@ -116,7 +117,9 @@ fun ScanScreen(
     }
 
     val pairs = ScanParser.parse(raw, separator)
-    val canSave = pairs.isNotEmpty() && (LANGUAGES.first { it.id == lang }.free || state.user.isPro)
+    val visibleLangs = LANGUAGES.filter { it.id in state.user.selectedLangIds }.ifEmpty { LANGUAGES.take(1) }
+    val chapters = state.chapters.filter { it.lang == lang }
+    val canSave = pairs.isNotEmpty() && lang.isNotBlank()
 
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp)) {
         Text("SCAN", color = Muted, fontSize = 11.sp, letterSpacing = 1.sp)
@@ -184,9 +187,33 @@ fun ScanScreen(
             Text("Sprache für den Import", fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.height(8.dp))
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                LANGUAGES.forEach { item ->
+                visibleLangs.forEach { item ->
                     val selected = lang == item.id
-                    Text("${item.flag} ${item.name}", modifier = Modifier.clip(RoundedCornerShape(999.dp)).background(if (selected) AccentSoft else Surface).border(1.dp, if (selected) Accent else Border, RoundedCornerShape(999.dp)).clickable { lang = item.id }.padding(horizontal = 12.dp, vertical = 8.dp), fontWeight = FontWeight.Medium)
+                    Text(
+                        "${item.flag} ${item.name}",
+                        modifier = Modifier.clip(RoundedCornerShape(999.dp)).background(if (selected) AccentSoft else Surface).border(1.dp, if (selected) Accent else Border, RoundedCornerShape(999.dp)).clickable {
+                            lang = item.id
+                            chapterId = state.chapters.firstOrNull { it.lang == item.id }?.id.orEmpty()
+                        }.padding(horizontal = 12.dp, vertical = 8.dp),
+                        fontWeight = FontWeight.Medium,
+                    )
+                }
+            }
+            Spacer(Modifier.height(12.dp))
+            Text("Kapitel", fontWeight = FontWeight.SemiBold)
+            Spacer(Modifier.height(8.dp))
+            if (chapters.isEmpty()) {
+                Text("Kein Kapitel in dieser Sprache. Lege eines über das Plus an.", color = Muted)
+            } else {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    chapters.forEach { chapter ->
+                        val selected = chapterId == chapter.id
+                        Text(
+                            chapter.name,
+                            modifier = Modifier.clip(RoundedCornerShape(999.dp)).background(if (selected) AccentSoft else Surface).border(1.dp, if (selected) Accent else Border, RoundedCornerShape(999.dp)).clickable { chapterId = chapter.id }.padding(horizontal = 12.dp, vertical = 8.dp),
+                            fontWeight = FontWeight.Medium,
+                        )
+                    }
                 }
             }
             Spacer(Modifier.height(16.dp))
@@ -201,18 +228,15 @@ fun ScanScreen(
             Spacer(Modifier.height(16.dp))
             Button(
                 onClick = {
-                    onImport(lang, pairs)
+                    onImport(lang, chapterId, pairs)
                     saved = true
                 },
-                enabled = canSave,
+                enabled = canSave && chapterId.isNotBlank(),
                 modifier = Modifier.fillMaxWidth().height(52.dp),
                 colors = ButtonDefaults.buttonColors(Accent),
                 shape = RoundedCornerShape(16.dp),
             ) {
                 Text(if (saved) "Gespeichert" else "Vokabeln übernehmen", fontWeight = FontWeight.Bold)
-            }
-            if (!LANGUAGES.first { it.id == lang }.free && !state.user.isPro) {
-                Text("Diese Sprache braucht WordFlow Pro.", color = Muted, modifier = Modifier.padding(top = 8.dp))
             }
         }
         Spacer(Modifier.height(32.dp))
