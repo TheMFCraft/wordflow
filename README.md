@@ -1,20 +1,19 @@
 # WordFlow
 
-Android-Vokabeltrainer im WordFlow-Design. Karteikarten, Streaks und Statistik — offline auf dem Gerät.
+Native Android-Vokabeltrainer (Kotlin + Jetpack Compose).
+
+- Welcome-Setup: Name, Sprache, Tagesziel
+- Echte Wortschätze (ES, FR, JA, IT, EN) mit Beispielen
+- Karteikarten, Streaks, Statistik
+- Foto-Scan: Liste fotografieren, Trenner setzen, Vokabeln importieren (ML Kit OCR)
 
 ## App bauen
 
-Voraussetzungen: Node.js 22+, JDK 21, Android SDK (API 35/36).
+JDK 21 und Android SDK (API 35/36):
 
 ```bash
-npm install
-npx cap sync android
 cd android
 ./gradlew assembleDebug
 ```
 
-Die Debug-APK liegt danach unter:
-
-`android/app/build/outputs/apk/debug/app-debug.apk`
-
-In Android Studio: `npx cap open android`.
+APK: `android/app/build/outputs/apk/debug/app-debug.apk`
