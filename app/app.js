@@ -784,3 +784,26 @@ clockTimer = setInterval(clock, 10000);
 const initial = location.hash.replace("#", "");
 if (["home", "stats", "pro", "languages"].includes(initial)) state.view = initial;
 render();
+
+function isNativeApp() {
+  return Boolean(window.Capacitor?.isNativePlatform?.());
+}
+
+if (isNativeApp()) {
+  document.documentElement.classList.add("is-native");
+  const plugins = window.Capacitor.Plugins || {};
+  plugins.StatusBar?.setStyle?.({ style: "LIGHT" });
+  plugins.StatusBar?.setBackgroundColor?.({ color: "#f7f3ea" });
+  plugins.App?.addListener?.("backButton", () => {
+    const dialog = document.getElementById("profile-dialog");
+    if (dialog?.open) {
+      dialog.close();
+      return;
+    }
+    if (state.view !== "home") {
+      navigate("home", "backward");
+      return;
+    }
+    plugins.App.exitApp();
+  });
+}
