@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "screens/learn.html",
+  "entry": "screens/learn.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-09-08T14:15:49.061Z",
+  "updatedAt": "2026-09-08T14:15:49.061Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}
