@@ -23,6 +23,9 @@ jobs:
       - run: npx cap sync android
       - name: Build debug APK
         working-directory: android
+        env:
+          CYLONE_CLIENT_ID: ${{ secrets.CYLONE_CLIENT_ID }}
+          CYLONE_CLIENT_SECRET: ${{ secrets.CYLONE_CLIENT_SECRET }}
         run: ./gradlew assembleDebug --no-daemon
       - uses: actions/upload-artifact@v4
         with:

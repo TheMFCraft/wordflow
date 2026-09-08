@@ -19,8 +19,8 @@ android {
         if (localFile.exists()) {
             localFile.withInputStream { localProperties.load(it) }
         }
-        def cyloneId = (localProperties.getProperty("cylone.clientId") ?: "").replace("\"", "\\\"")
-        def cyloneSecret = (localProperties.getProperty("cylone.clientSecret") ?: "").replace("\"", "\\\"")
+        def cyloneId = (System.getenv("CYLONE_CLIENT_ID") ?: localProperties.getProperty("cylone.clientId") ?: "").replace("\"", "\\\"")
+        def cyloneSecret = (System.getenv("CYLONE_CLIENT_SECRET") ?: localProperties.getProperty("cylone.clientSecret") ?: "").replace("\"", "\\\"")
         buildConfigField "String", "CYLONE_CLIENT_ID", "\"${cyloneId}\""
         buildConfigField "String", "CYLONE_CLIENT_SECRET", "\"${cyloneSecret}\""
     }
