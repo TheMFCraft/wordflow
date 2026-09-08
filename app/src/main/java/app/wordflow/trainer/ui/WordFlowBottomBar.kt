@@ -2,18 +2,8 @@ package app.wordflow.trainer.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Home
@@ -77,7 +67,7 @@ fun WordFlowBottomBar(
         Modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .padding(horizontal = 16.dp, bottom = 12.dp)
+            .padding(start = 16.dp, end = 16.dp, bottom = 12.dp)
             .height(84.dp),
     ) {
         // 3D Shadow Container
@@ -90,7 +80,7 @@ fun WordFlowBottomBar(
                 .clip(CradleBarShape())
                 .background(Color.White),
         ) {
-            Row(Modifier.matchParentSize().padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.fillMaxSize().padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                 BarItem(
                     selected = selected == "home",
                     label = "Home",
@@ -153,7 +143,7 @@ private fun BarItem(
     icon: @Composable () -> Unit,
 ) {
     Box(modifier.then(modifier).clickable(onClick = onClick), contentAlignment = Alignment.Center) {
-        androidx.compose.foundation.layout.Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
             icon()
             Text(label, color = if (selected) Accent else Muted, fontSize = 10.sp, fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium)
         }

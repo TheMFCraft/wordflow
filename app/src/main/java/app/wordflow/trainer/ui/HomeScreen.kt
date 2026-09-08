@@ -6,6 +6,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.ChevronRight
+import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -87,7 +89,7 @@ fun HomeScreen(
                         Text(lang.name, fontWeight = FontWeight.Bold)
                         Text("$chCount Kapitel", color = Muted, fontSize = 13.sp)
                     }
-                    Icon(androidx.compose.material.icons.Icons.Default.ChevronRight, null, tint = Border)
+                    Icon(Icons.Outlined.ChevronRight, null, tint = Border)
                 }
             }
         }
@@ -120,7 +122,7 @@ fun LanguageScreen(
                         .clickable { onChapter(chapter.id) }.padding(16.dp)
                 ) {
                     Text(chapter.name, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-                    Icon(androidx.compose.material.icons.Icons.Default.PlayArrow, null, tint = Accent)
+                    Icon(Icons.Outlined.PlayArrow, null, tint = Accent)
                 }
             }
         }

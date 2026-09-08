@@ -103,3 +103,20 @@ data class LanguagePack(
     val price: String = "Kostenlos",
     val chapters: List<String> = emptyList()
 )
+
+data class VocabPair(val word: String, val translation: String)
+
+data class SessionState(
+    val lang: LanguageInfo,
+    val chapterName: String,
+    val chapterId: String,
+    val queue: List<WordEntity>,
+    val index: Int = 0,
+    val flipped: Boolean = false,
+    val results: Map<String, Boolean> = emptyMap(),
+    val startedAt: Long = System.currentTimeMillis(),
+    val done: Boolean = false,
+) {
+    val current: WordEntity? get() = queue.getOrNull(index)
+    val known: Int get() = results.values.count { it }
+}

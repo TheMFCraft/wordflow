@@ -11,10 +11,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -166,7 +169,7 @@ private fun LanguageSelectionPage(selected: Set<String>, onSelect: (Set<String>)
                     Text(item.name, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
                     Text(item.level, color = Muted, fontSize = 13.sp)
                 }
-                if (isOn) Icon(androidx.compose.material.icons.Icons.Default.Check, null, tint = Accent)
+                if (isOn) Icon(Icons.Default.Check, null, tint = Accent)
             }
         }
     }

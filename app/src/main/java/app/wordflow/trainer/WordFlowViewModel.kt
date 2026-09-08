@@ -20,21 +20,6 @@ import java.util.Locale
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
-data class SessionState(
-    val lang: LanguageInfo,
-    val chapterName: String,
-    val chapterId: String,
-    val queue: List<WordEntity>,
-    val index: Int = 0,
-    val flipped: Boolean = false,
-    val results: Map<String, Boolean> = emptyMap(),
-    val startedAt: Long = System.currentTimeMillis(),
-    val done: Boolean = false,
-) {
-    val current: WordEntity? get() = queue.getOrNull(index)
-    val known: Int get() = results.values.count { it }
-}
-
 data class UiState(
     val user: UserState = UserState(),
     val words: List<WordEntity> = emptyList(),

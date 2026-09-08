@@ -20,6 +20,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.wordflow.trainer.LanguageInfo
+import app.wordflow.trainer.SessionState
 import app.wordflow.trainer.UiState
 import app.wordflow.trainer.WordEntity
 import app.wordflow.trainer.ui.theme.*
