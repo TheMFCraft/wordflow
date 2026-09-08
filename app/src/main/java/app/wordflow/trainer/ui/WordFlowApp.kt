@@ -18,6 +18,7 @@ private object Routes {
     const val Home = "home"
     const val Store = "store"
     const val Stats = "stats"
+    const val Scan = "scan"
     const val Language = "language/{id}"
     const val Learn = "learn"
     const val Settings = "settings"
@@ -92,8 +93,15 @@ fun WordFlowApp(vm: WordFlowViewModel = viewModel()) {
             }
             composable(Routes.Store) { StoreScreen(state) }
             composable(Routes.Stats) { StatsScreen(state) }
+            composable(Routes.Scan) {
+                ScanScreen(
+                    state = state,
+                    onBack = { nav.popBackStack() },
+                    onImport = vm::importPairs,
+                    recognize = vm::recognizeText
+                )
+            }
             composable(
-                Routes.Language,
                 arguments = listOf(navArgument("id") { type = NavType.StringType })
             ) { backStack ->
                 val id = backStack.arguments?.getString("id").orEmpty()
@@ -138,7 +146,7 @@ fun WordFlowApp(vm: WordFlowViewModel = viewModel()) {
             onAddLanguage = vm::addLanguage,
             onAddChapter = vm::createChapter,
             onAddWord = vm::addWord,
-            onScan = { plusOpen = false }
+            onScan = { plusOpen = false; nav.navigate(Routes.Scan) }
         )
     }
 }

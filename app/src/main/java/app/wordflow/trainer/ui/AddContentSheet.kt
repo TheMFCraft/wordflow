@@ -47,6 +47,7 @@ fun AddContentSheet(
                     AddRow("Sprache", "Lernliste erweitern", Icons.Outlined.Language) { step = AddStep.Language }
                     AddRow("Kapitel", "Neues Kapitel anlegen", Icons.Outlined.Book) { step = AddStep.Chapter }
                     AddRow("Vokabel", "Manuell hinzufügen", Icons.Outlined.Add) { step = AddStep.Vocab }
+                    AddRow("Scan", "Per Foto importieren", Icons.Outlined.CameraAlt) { onScan() }
                 }
                 AddStep.Language -> {
                     Text("SPRACHE WÄHLEN", style = MaterialTheme.typography.labelSmall)
@@ -102,6 +103,7 @@ private fun ChapterForm(state: UiState, onAdd: (String, String) -> Unit) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun VocabForm(state: UiState, onAdd: (String, String, String, String) -> Unit) {
     var word by remember { mutableStateOf("") }
@@ -113,6 +115,31 @@ private fun VocabForm(state: UiState, onAdd: (String, String, String, String) ->
     Column {
         Text("VOKABEL HINZUFÜGEN", style = MaterialTheme.typography.labelSmall)
         Spacer(Modifier.height(16.dp))
+        
+        if (chapters.isNotEmpty()) {
+            var expanded by remember { mutableStateOf(false) }
+            Text("KAPITEL", style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(bottom = 4.dp))
+            ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
+                OutlinedTextField(
+                    value = chapters.find { it.id == chapterId }?.name ?: "Wählen...",
+                    onValueChange = {},
+                    readOnly = true,
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                    modifier = Modifier.fillMaxWidth().menuAnchor(),
+                    shape = RoundedCornerShape(12.dp)
+                )
+                ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                    chapters.forEach { ch ->
+                        DropdownMenuItem(
+                            text = { Text(ch.name) },
+                            onClick = { chapterId = ch.id; expanded = false }
+                        )
+                    }
+                }
+            }
+            Spacer(Modifier.height(16.dp))
+        }
+
         OutlinedTextField(value = word, onValueChange = { word = it }, label = { Text("Wort") }, modifier = Modifier.fillMaxWidth())
         Spacer(Modifier.height(8.dp))
         OutlinedTextField(value = trans, onValueChange = { trans = it }, label = { Text("Übersetzung") }, modifier = Modifier.fillMaxWidth())
