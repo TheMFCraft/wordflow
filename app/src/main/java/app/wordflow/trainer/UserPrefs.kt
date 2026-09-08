@@ -28,6 +28,8 @@ class UserPrefs(private val context: Context) {
     private val totalCorrect = intPreferencesKey("total_correct")
     private val totalAttempts = intPreferencesKey("total_attempts")
     private val totalSeconds = longPreferencesKey("total_seconds")
+    private val theme = stringPreferencesKey("theme")
+    private val appLang = stringPreferencesKey("app_lang")
     private val cyloneSub = stringPreferencesKey("cylone_sub")
     private val cyloneEmail = stringPreferencesKey("cylone_email")
     private val cyloneName = stringPreferencesKey("cylone_name")
@@ -56,6 +58,8 @@ class UserPrefs(private val context: Context) {
             p[totalCorrect] = next.totalCorrect
             p[totalAttempts] = next.totalAttempts
             p[totalSeconds] = next.totalSeconds
+            p[theme] = next.theme
+            p[appLang] = next.appLanguage
             p[cyloneSub] = next.cyloneSub
             p[cyloneEmail] = next.cyloneEmail
             p[cyloneName] = next.cyloneName
@@ -84,6 +88,8 @@ class UserPrefs(private val context: Context) {
             totalCorrect = p[totalCorrect] ?: 0,
             totalAttempts = p[totalAttempts] ?: 0,
             totalSeconds = p[totalSeconds] ?: 0L,
+            theme = p[theme] ?: "system",
+            appLanguage = p[appLang] ?: "de",
             cyloneSub = p[cyloneSub].orEmpty(),
             cyloneEmail = p[cyloneEmail].orEmpty(),
             cyloneName = p[cyloneName].orEmpty(),

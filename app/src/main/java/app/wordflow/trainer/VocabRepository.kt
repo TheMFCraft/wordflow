@@ -99,6 +99,14 @@ class VocabRepository(context: Context, private val db: AppDatabase) {
         prefs.save { it.copy(name = name.trim().take(24)) }
     }
 
+    suspend fun setTheme(theme: String) {
+        prefs.save { it.copy(theme = theme) }
+    }
+
+    suspend fun setAppLanguage(lang: String) {
+        prefs.save { it.copy(appLanguage = lang) }
+    }
+
     suspend fun linkCylone(profile: CyloneProfile) {
         prefs.save { state ->
             state.copy(

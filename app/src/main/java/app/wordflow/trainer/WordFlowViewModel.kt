@@ -127,6 +127,14 @@ class WordFlowViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch { repo.setName(name) }
     }
 
+    fun setTheme(theme: String) {
+        viewModelScope.launch { repo.setTheme(theme) }
+    }
+
+    fun setAppLanguage(lang: String) {
+        viewModelScope.launch { repo.setAppLanguage(lang) }
+    }
+
     fun markAuthBusy() {
         authBusy.value = true
         authMessage.value = null

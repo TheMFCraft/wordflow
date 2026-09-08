@@ -15,11 +15,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         CyloneIdAuth.handleRedirect(intent?.data)
         enableEdgeToEdge()
-        setContent {
-            WordFlowTheme {
-                WordFlowApp()
-            }
-        }
+    setContent {
+        WordFlowApp()
+    }
     }
 
     override fun onNewIntent(intent: Intent) {

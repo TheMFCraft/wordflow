@@ -16,15 +16,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.platform.LocalContext
 import app.wordflow.trainer.CyloneIdAuth
 import app.wordflow.trainer.UiState
 import app.wordflow.trainer.ui.theme.*
 
-private enum class SettingsPage { Main, Profile, Account, Subscription }
+private enum class SettingsPage { Main, Profile, Account, Subscription, Customization }
 
 @Composable
 fun SettingsScreen(
@@ -34,6 +34,8 @@ fun SettingsScreen(
     onPlus: (Boolean) -> Unit,
     onCyloneLogin: () -> Unit,
     onCyloneLogout: () -> Unit,
+    onTheme: (String) -> Unit,
+    onAppLang: (String) -> Unit,
 ) {
     var currentPage by remember { mutableStateOf(SettingsPage.Main) }
 
@@ -43,6 +45,7 @@ fun SettingsScreen(
             SettingsPage.Profile -> ProfileSettings(state, onName, onGoal) { currentPage = SettingsPage.Main }
             SettingsPage.Account -> AccountSettings(state, onCyloneLogin, onCyloneLogout) { currentPage = SettingsPage.Main }
             SettingsPage.Subscription -> PlusSettings(state, onPlus) { currentPage = SettingsPage.Main }
+            SettingsPage.Customization -> CustomizationSettings(state, onTheme, onAppLang) { currentPage = SettingsPage.Main }
         }
     }
 }
@@ -55,6 +58,7 @@ private fun MainSettings(state: UiState, onNavigate: (SettingsPage) -> Unit) {
         Spacer(Modifier.height(24.dp))
         
         SettingCategory("Profil", "Name und Tagesziel", Icons.Outlined.Person) { onNavigate(SettingsPage.Profile) }
+        SettingCategory("Anpassung", "Theme und App-Sprache", Icons.Outlined.Palette) { onNavigate(SettingsPage.Customization) }
         SettingCategory("Cylone ID", "Konto und Synchronisation", Icons.Outlined.AccountCircle) { onNavigate(SettingsPage.Account) }
         SettingCategory("WordFlow PLUS", "Premium-Features verwalten", Icons.Outlined.WorkspacePremium) { onNavigate(SettingsPage.Subscription) }
         
@@ -82,13 +86,57 @@ private fun ProfileSettings(state: UiState, onName: (String) -> Unit, onGoal: (I
                 val isOn = state.user.dailyGoal == goal
                 Box(
                     Modifier.weight(1f).clip(RoundedCornerShape(12.dp))
-                        .background(if (isOn) Accent else Surface)
+                        .background(if (isOn) Accent else MaterialTheme.colorScheme.surface)
                         .border(1.dp, Border, RoundedCornerShape(12.dp))
                         .clickable { onGoal(goal) }
                         .padding(12.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("$goal", color = if (isOn) Color.White else Fg, fontWeight = FontWeight.Bold)
+                    Text("$goal", color = if (isOn) Color.White else MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CustomizationSettings(state: UiState, onTheme: (String) -> Unit, onAppLang: (String) -> Unit, onBack: () -> Unit) {
+    Column(Modifier.fillMaxSize().padding(20.dp)) {
+        SettingsHeader("Anpassung", onBack)
+        
+        Text("THEME", style = MaterialTheme.typography.labelSmall)
+        Spacer(Modifier.height(8.dp))
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            listOf("system" to "System", "light" to "Hell", "dark" to "Dunkel").forEach { (id, label) ->
+                val isOn = state.user.theme == id
+                Box(
+                    Modifier.weight(1f).clip(RoundedCornerShape(12.dp))
+                        .background(if (isOn) Accent else MaterialTheme.colorScheme.surface)
+                        .border(1.dp, Border, RoundedCornerShape(12.dp))
+                        .clickable { onTheme(id) }
+                        .padding(12.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(label, color = if (isOn) Color.White else MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                }
+            }
+        }
+        
+        Spacer(Modifier.height(32.dp))
+        Text("APP SPRACHE", style = MaterialTheme.typography.labelSmall)
+        Spacer(Modifier.height(8.dp))
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            listOf("de" to "Deutsch", "en" to "English").forEach { (id, label) ->
+                val isOn = state.user.appLanguage == id
+                Box(
+                    Modifier.weight(1f).clip(RoundedCornerShape(12.dp))
+                        .background(if (isOn) Accent else MaterialTheme.colorScheme.surface)
+                        .border(1.dp, Border, RoundedCornerShape(12.dp))
+                        .clickable { onAppLang(id) }
+                        .padding(12.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(label, color = if (isOn) Color.White else MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -101,7 +149,7 @@ private fun AccountSettings(state: UiState, onLogin: () -> Unit, onLogout: () ->
     Column(Modifier.fillMaxSize().padding(20.dp)) {
         SettingsHeader("Cylone ID", onBack)
         if (state.user.isCyloneLinked) {
-            Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(Surface).border(1.dp, Border, RoundedCornerShape(20.dp)).padding(24.dp)) {
+            Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(MaterialTheme.colorScheme.surface).border(1.dp, Border, RoundedCornerShape(20.dp)).padding(24.dp)) {
                 Column {
                     Text("Verbunden mit:", color = Muted, style = MaterialTheme.typography.labelSmall)
                     Text(state.user.cyloneEmail, fontWeight = FontWeight.Bold, fontSize = 20.sp)
@@ -120,7 +168,6 @@ private fun AccountSettings(state: UiState, onLogin: () -> Unit, onLogout: () ->
         } else {
             Text("Melde dich an, um deinen Fortschritt in der Cloud zu speichern und WordFlow PLUS auf allen Geräten zu nutzen.", color = Muted)
             Spacer(Modifier.height(24.dp))
-            // Dark grey icon-only button as requested
             Button(
                 onClick = { 
                     onLogin()
@@ -173,7 +220,7 @@ private fun SettingsHeader(title: String, onBack: () -> Unit) {
 private fun SettingCategory(title: String, desc: String, icon: ImageVector, onClick: () -> Unit) {
     Row(
         Modifier.fillMaxWidth().padding(bottom = 12.dp).clip(RoundedCornerShape(16.dp))
-            .background(Surface).border(1.dp, Border, RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surface).border(1.dp, Border, RoundedCornerShape(16.dp))
             .clickable(onClick = onClick).padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

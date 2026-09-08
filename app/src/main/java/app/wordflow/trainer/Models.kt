@@ -84,6 +84,8 @@ data class UserState(
     val totalCorrect: Int = 0,
     val totalAttempts: Int = 0,
     val totalSeconds: Long = 0,
+    val theme: String = "system",
+    val appLanguage: String = "de",
     val cyloneSub: String = "",
     val cyloneEmail: String = "",
     val cyloneName: String = "",

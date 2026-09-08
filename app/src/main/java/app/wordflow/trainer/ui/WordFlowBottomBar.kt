@@ -6,10 +6,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Storefront
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -47,8 +49,10 @@ class CradleBarShape : Shape {
             )
             lineTo(size.width - corner, 0f)
             quadraticTo(size.width, 0f, size.width, corner)
-            lineTo(size.width, size.height)
-            lineTo(0f, size.height)
+            lineTo(size.width, size.height - corner)
+            quadraticTo(size.width, size.height, size.width - corner, size.height)
+            lineTo(corner, size.height)
+            quadraticTo(0f, size.height, 0f, size.height - corner)
             close()
         }
         return Outline.Generic(path)
@@ -79,7 +83,7 @@ fun WordFlowBottomBar(
                 .height(64.dp)
                 .shadow(24.dp, CradleBarShape(), ambientColor = Color.Black.copy(0.4f), spotColor = Color.Black.copy(0.4f))
                 .clip(CradleBarShape())
-                .background(Color.White),
+                .background(MaterialTheme.colorScheme.surface),
         ) {
             Row(Modifier.fillMaxSize().padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                 BarItem(
@@ -105,7 +109,7 @@ fun WordFlowBottomBar(
                     onClick = onStats,
                     modifier = Modifier.weight(1f),
                 ) {
-                    Icon(androidx.compose.material.icons.Icons.Outlined.BarChart, null, tint = if (selected == "stats") Accent else Muted)
+                    Icon(Icons.Outlined.BarChart, null, tint = if (selected == "stats") Accent else Muted)
                 }
                 BarItem(
                     selected = selected == "settings",

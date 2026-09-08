@@ -1,14 +1,13 @@
 package app.wordflow.trainer.ui.theme
 
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.lightColorScheme
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import androidx.compose.material3.Typography
 
 val Bg = Color(0xFFF8F5F0)
 val Surface = Color(0xFFFFFFFF)
@@ -22,6 +21,14 @@ val Error = Color(0xFFD4533A)
 val AccentSoft = Color(0x1FE8923A)
 val CyloneGrey = Color(0xFF333333)
 
+// Dark Palette
+val BgDark = Color(0xFF1C1B19)
+val SurfaceDark = Color(0xFF2C2926)
+val FgDark = Color(0xFFE6E1DD)
+val MutedDark = Color(0xFF948F85)
+val BorderDark = Color(0xFF3D3935)
+val AccentSoftDark = Color(0x26E8923A)
+
 private val LightColors = lightColorScheme(
     primary = Accent,
     onPrimary = Color.White,
@@ -34,20 +41,38 @@ private val LightColors = lightColorScheme(
     error = Error,
 )
 
+private val DarkColors = darkColorScheme(
+    primary = Accent,
+    onPrimary = Color.White,
+    secondary = Accent2,
+    background = BgDark,
+    onBackground = FgDark,
+    surface = SurfaceDark,
+    onSurface = FgDark,
+    outline = BorderDark,
+    error = Error,
+)
+
 private val Typography = Typography(
-    displayLarge = TextStyle(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.ExtraBold, fontSize = 32.sp, color = Fg),
-    headlineLarge = TextStyle(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.ExtraBold, fontSize = 26.sp, color = Fg),
-    headlineMedium = TextStyle(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Fg),
-    titleMedium = TextStyle(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = Fg),
-    bodyLarge = TextStyle(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Normal, fontSize = 15.sp, color = Fg),
-    bodyMedium = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = 13.sp, color = Muted),
-    labelSmall = TextStyle(fontFamily = FontFamily.Monospace, fontSize = 11.sp, color = Muted, letterSpacing = 0.8.sp),
+    displayLarge = TextStyle(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.ExtraBold, fontSize = 32.sp),
+    headlineLarge = TextStyle(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.ExtraBold, fontSize = 26.sp),
+    headlineMedium = TextStyle(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Bold, fontSize = 20.sp),
+    titleMedium = TextStyle(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.SemiBold, fontSize = 16.sp),
+    bodyLarge = TextStyle(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Normal, fontSize = 15.sp),
+    bodyMedium = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = 13.sp),
+    labelSmall = TextStyle(fontFamily = FontFamily.Monospace, fontSize = 11.sp, letterSpacing = 0.8.sp),
 )
 
 @Composable
-fun WordFlowTheme(content: @Composable () -> Unit) {
+fun WordFlowTheme(theme: String = "system", content: @Composable () -> Unit) {
+    val dark = when (theme) {
+        "dark" -> true
+        "light" -> false
+        else -> isSystemInDarkTheme()
+    }
+    
     MaterialTheme(
-        colorScheme = LightColors,
+        colorScheme = if (dark) DarkColors else LightColors,
         typography = Typography,
         content = content,
     )
